@@ -151,6 +151,15 @@ class AESIndiana(UtilityBase):
                 pending = ("POST", urljoin(url, action_url), inputs)
                 continue
 
+            if "__VIEWSTATE" in body and _LOGIN_FORM_MARKER not in body:
+                # ASP.NET page with a form but no login fields — likely the
+                # SAML ssoservice.aspx page that needs to be submitted to
+                # continue the SSO redirect chain.
+                action_url, inputs = _get_form_action_and_hidden_inputs(body)
+                if action_url:
+                    pending = ("POST", urljoin(url, action_url), inputs)
+                    continue
+
             if url.split("?", 1)[0].rstrip("/") == "https://aesi.opower.com/ei/x/dashboard":
                 # Landed on the OPower dashboard; session cookies are set.
                 _LOGGER.debug("AES Indiana login successful")
